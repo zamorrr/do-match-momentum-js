@@ -1,5 +1,7 @@
 # Dugout Online - Match Momentum
 
+**English below**
+
 Userscript dla **Dugout Online**, który dodaje do strony meczu zakładkę **Match Momentum** z:
 
 - wykresem momentum meczu,
@@ -101,5 +103,113 @@ Jeżeli problem nadal występuje, zgłoś go w sekcji **Issues** tego repozytori
 ## Repozytorium
 
 Kod źródłowy i najnowsza wersja skryptu:
+
+https://github.com/zamorrr/do-match-momentum-js
+
+---
+
+# English
+
+A userscript for **Dugout Online** that adds a **Match Momentum** tab to match pages with:
+
+- a match momentum chart,
+- a compact and readable match timeline,
+- match statistics,
+- support for both the old and new match interface,
+- automatic updates through Tampermonkey.
+
+## Requirements
+
+To use the script you need:
+
+- **Chrome** or **Firefox**,
+- the **Tampermonkey** extension,
+- an account with access to Dugout Online.
+
+## Installation
+
+### 1. Install Tampermonkey
+
+Install Tampermonkey for your browser:
+
+- Chrome: https://www.tampermonkey.net/
+- Firefox: https://www.tampermonkey.net/
+
+After installation, make sure the extension is enabled.
+
+### 2. Install Match Momentum
+
+Click the link below:
+
+**[Install Dugout Match Momentum](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum.user.js)**
+
+Tampermonkey should automatically open the userscript installation screen.
+
+Click **Install**.
+
+> If you only see the source code after opening the link, make sure Tampermonkey is enabled and has permission to run on `raw.githubusercontent.com`.
+
+## How to use it
+
+1. Log in to **Dugout Online**.
+2. Open any match page.
+3. A new **Match Momentum** tab should appear on the match page.
+4. Open it to view the momentum chart, match timeline and statistics.
+
+The script only uses data already available on the currently opened match page. It does not require a separate login, password or any additional configuration.
+
+## Updates
+
+The script is configured to check this GitHub repository for updates automatically.
+
+You do not need to reinstall the script whenever a new version is released. When the repository contains a version with a higher `@version` number, Tampermonkey can detect it and update the installed script.
+
+To check for updates manually:
+
+1. Open the **Tampermonkey Dashboard**.
+2. Find **Dugout Online - Match Momentum**.
+3. Use **Check for userscript updates**.
+4. If a newer version is available, confirm the update.
+
+## Supported URLs
+
+The script runs on match pages matching:
+
+```text
+https://dugout-online.com/game/*
+https://www.dugout-online.com/game/*
+```
+
+## Privacy
+
+The script:
+
+- does not store your username or password,
+- does not send data to external services,
+- does not use Google Drive,
+- does not use analytics or user tracking,
+- works directly with data available on the match page.
+
+## Troubleshooting
+
+If the **Match Momentum** tab does not appear:
+
+1. refresh the match page,
+2. check that the script is enabled in Tampermonkey,
+3. make sure the page URL starts with `https://dugout-online.com/game/` or `https://www.dugout-online.com/game/`,
+4. make sure you are using the latest version of the script.
+
+If the problem persists, create an **Issue** in this repository and include:
+
+- the type of match page URL, without any login data,
+- your browser,
+- your Tampermonkey version,
+- your script version,
+- a short description of the problem,
+- optionally, a screenshot.
+
+## Repository
+
+Source code and the latest version of the script:
 
 https://github.com/zamorrr/do-match-momentum-js
