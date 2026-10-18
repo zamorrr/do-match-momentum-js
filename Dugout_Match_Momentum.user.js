@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      1.6.22
+// @version      1.6.23
 // @description  Adds a Match Momentum tab with an SVG momentum chart, compact match timeline and statistics. No external services, no credentials, no Google Drive.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
@@ -1530,6 +1530,19 @@
   // ---------------------------------------------------------------------------
   // Main app
   // ---------------------------------------------------------------------------
+  function detectMatchInterface() {
+    // Detect the match UI from native Dugout markup, not from where our own
+    // container happened to be mounted. This keeps the new-interface layout
+    // completely independent from the legacy fallback wrapper.
+    const isNew = Boolean(
+      document.querySelector('.do-mv-scorebar') ||
+      document.querySelector('#doMvCommentary') ||
+      document.querySelector('.do-mv-team') ||
+      document.querySelector('#doMvStats')
+    );
+    return isNew ? 'new' : 'legacy';
+  }
+
   function renderApp() {
     const app = document.getElementById(APP_ID);
     if (!app) return;
@@ -1576,7 +1589,7 @@
         </div>
       </div>`;
 
-    const isLegacyInterface = Boolean(app.closest('.do-mm-legacy-wrap'));
+    const isLegacyInterface = detectMatchInterface() === 'legacy';
     if (isLegacyInterface) {
       // Legacy match view is much narrower. Keep every major panel in one
       // vertical column so nothing is squeezed side-by-side:
@@ -1618,7 +1631,7 @@
     // Legacy interface uses a vertical chart -> timeline -> stats stack.
     // Let the timeline take its natural height; do not force it to match a
     // side-by-side column that does not exist there.
-    if (app.closest('.do-mm-legacy-wrap')) {
+    if (detectMatchInterface() === 'legacy') {
       box.style.height = '';
       box.style.maxHeight = 'none';
       box.style.overflowY = 'visible';
