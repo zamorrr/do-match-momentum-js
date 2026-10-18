@@ -1,11 +1,14 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum
-// @namespace    https://dugout-online.com/
-// @version      1.6.20
+// @namespace    https://github.com/zamorrr/do-match-momentum-js
+// @version      1.6.21
 // @description  Adds a Match Momentum tab with an SVG momentum chart, compact match timeline and statistics. No external services, no credentials, no Google Drive.
-// @author       Community script
+// @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
+// @homepageURL  https://github.com/zamorrr/do-match-momentum-js
+// @updateURL    https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum.user.js
+// @downloadURL  https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum.user.js
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
