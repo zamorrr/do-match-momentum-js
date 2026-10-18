@@ -41,6 +41,16 @@ Kliknij **Install / Zainstaluj**.
 
 > Jeżeli po kliknięciu linku zobaczysz tylko kod źródłowy, sprawdź, czy Tampermonkey jest aktywny i ma uprawnienia do działania na stronach `raw.githubusercontent.com`.
 
+### Wersja BETA 2.0.2
+
+Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **OFFENSE / DEFENSE**.
+
+**[Zainstaluj Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
+
+Wersja BETA jest osobnym userscriptem i ma własny kanał aktualizacji, więc może być zainstalowana obok wersji stabilnej.
+
+> **Ważne:** nie uruchamiaj jednocześnie wersji stabilnej i BETA na stronie meczu. Oba skrypty modyfikują ten sam widok Dugout Online. W Tampermonkey pozostaw oba zainstalowane, ale podczas testów włącz BETA i wyłącz wersję stabilną. Po zakończeniu testów możesz ponownie włączyć wersję stabilną.
+
 ## Uruchomienie
 
 1. Zaloguj się do **Dugout Online**.
@@ -148,6 +158,16 @@ Tampermonkey should automatically open the userscript installation screen.
 Click **Install**.
 
 > If you only see the source code after opening the link, make sure Tampermonkey is enabled and has permission to run on `raw.githubusercontent.com`.
+
+### BETA version 2.0.2
+
+You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **OFFENSE / DEFENSE** view switch.
+
+**[Install Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
+
+The BETA is a separate userscript with its own update channel, so it can be installed alongside the stable version.
+
+> **Important:** do not run the stable and BETA scripts at the same time on a match page. Both scripts modify the same Dugout Online match view. You can keep both installed in Tampermonkey, but enable BETA and disable the stable script while testing. Re-enable the stable version when you finish testing.
 
 ## How to use it
 
