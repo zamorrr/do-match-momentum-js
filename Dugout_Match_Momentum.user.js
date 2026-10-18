@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      1.6.23
+// @version      1.6.24
 // @description  Adds a Match Momentum tab with an SVG momentum chart, compact match timeline and statistics. No external services, no credentials, no Google Drive.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
@@ -10,7 +10,7 @@
 // @updateURL    https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum.user.js
 // @downloadURL  https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum.user.js
 // @run-at       document-idle
-// @grant        none
+// @grant        GM_info
 // ==/UserScript==
 
 (() => {
@@ -1543,6 +1543,16 @@
     return isNew ? 'new' : 'legacy';
   }
 
+  function scriptVersion() {
+    try {
+      return (typeof GM_info !== 'undefined' && GM_info && GM_info.script && GM_info.script.version)
+        ? String(GM_info.script.version)
+        : '1.6.24';
+    } catch (_) {
+      return '1.6.24';
+    }
+  }
+
   function renderApp() {
     const app = document.getElementById(APP_ID);
     if (!app) return;
@@ -1577,6 +1587,13 @@
         </div>
       </div>`;
 
+    const creatorInfo = `
+      <div class="do-mm-creator-info">
+        <span class="do-mm-version">v${esc(scriptVersion())}</span>
+        <span class="do-mm-creator-sep">·</span>
+        <span>created by Zamor, manager of <a href="https://dugout-online.com/clubinfo/none/clubid/10131/" target="_blank" rel="noopener noreferrer">Jelonki FC</a></span>
+      </div>`;
+
     const chartBlock = `
       <div id="do-mm-chart"></div>
       <div class="do-mm-chart-tools">
@@ -1595,6 +1612,7 @@
       // vertical column so nothing is squeezed side-by-side:
       // chart -> timeline -> statistics.
       app.innerHTML = `
+        ${creatorInfo}
         ${momentumHeader}
         <div class="do-mm-layout do-mm-layout-legacy">
           <div class="do-mm-legacy-chart">${chartBlock}</div>
@@ -1604,6 +1622,7 @@
     } else {
       // New interface: preserve the existing two-column layout unchanged.
       app.innerHTML = `
+        ${creatorInfo}
         ${momentumHeader}
         <div class="do-mm-layout">
           <div class="do-mm-left">
@@ -1767,6 +1786,11 @@
       #${APP_ID}, #${APP_ID} * { box-sizing:border-box; }
       .do-mm-topline { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:20px; align-items:center; margin:0 14px 12px; padding:8px 18px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,.08); font-size:20px; font-weight:800; }
       .do-mm-topteam { min-width:0; display:flex; align-items:center; gap:12px; color:var(--do-mm-header-text, ${THEME.text}); }
+      .do-mm-creator-info { display:flex; align-items:center; justify-content:flex-start; gap:5px; padding:5px 14px 7px; color:${THEME.subtle}; font-size:10px; line-height:1.25; }
+      .do-mm-creator-info .do-mm-version { font-weight:800; color:${THEME.text}; }
+      .do-mm-creator-info .do-mm-creator-sep { opacity:.6; }
+      .do-mm-creator-info a { color:inherit; font-weight:800; text-decoration:none; }
+      .do-mm-creator-info a:hover { text-decoration:underline; }
       .do-mm-topteam.home { justify-content:flex-start; }
       .do-mm-topteam.away { justify-content:flex-end; }
       .do-mm-topteam > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
