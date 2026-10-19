@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.10
-// @description  BETA 2.0.10 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
+// @version      2.0.11
+// @description  BETA 2.0.11 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -1881,20 +1881,25 @@
       </div>`;
     };
 
-    return `<div class="do-mm-live-stats-box">
-      <button type="button" class="do-mm-live-stats-close" title="${esc(tr('liveStatsHide'))}" aria-label="${esc(tr('liveStatsHide'))}">×</button>
-      <div class="do-mm-live-stats-teams"><span style="color:${md.colors.homeText}">${esc(md.homeName)}</span><span style="color:${md.colors.awayText}">${esc(md.awayName)}</span></div>
-      <div class="do-mm-live-stats-grid">
-        <div class="do-mm-live-stats-col">${leftRows.map(renderRow).join('')}</div>
-        <div class="do-mm-live-stats-col">${rightRows.map(renderRow).join('')}</div>
+    return `<div class="do-mm-live-stats-wrap">
+      <div class="do-mm-live-stats-box">
+        <div class="do-mm-live-stats-grid">
+          <div class="do-mm-live-stats-col">${leftRows.map(renderRow).join('')}</div>
+          <div class="do-mm-live-stats-col">${rightRows.map(renderRow).join('')}</div>
+        </div>
       </div>
+      <button type="button" class="do-mm-live-stats-close" title="${esc(tr('liveStatsHide'))}" aria-label="${esc(tr('liveStatsHide'))}">×</button>
     </div>`;
   }
 
   function bindLiveStatsControls(root) {
     const openBtn = root.querySelector('.do-mm-live-stats-toggle');
     if (openBtn) openBtn.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation(); liveStatsOpen = true; renderApp();
+      e.preventDefault();
+      e.stopPropagation();
+      liveStatsOpen = true;
+      timelineNewestFirst = true;
+      renderApp();
     });
     const closeBtn = root.querySelector('.do-mm-live-stats-close');
     if (closeBtn) closeBtn.addEventListener('click', e => {
@@ -2368,18 +2373,17 @@
       .do-mm-live-head-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(330px, .9fr); gap:16px; margin:0 14px 12px; align-items:stretch; min-height:112px; height:112px; }
       .do-mm-live-head-grid .do-mm-topline { margin:0; height:112px; min-height:112px; }
       .do-mm-live-head-grid.closed { grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
-      .do-mm-live-stats-toggle { height:112px; min-height:112px; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px 0; box-shadow:0 1px 2px rgba(0,0,0,.08); }
-      .do-mm-live-stats-toggle span { display:block; transform:rotate(-90deg); white-space:nowrap; font-size:10px; font-weight:900; letter-spacing:.45px; }
-      .do-mm-live-stats-toggle:hover { filter:brightness(.97); }
-      .do-mm-live-stats-box { position:relative; height:112px; min-height:112px; padding:9px 12px 8px; border:1px solid ${THEME.border}; border-radius:8px; background:${THEME.panel}; overflow:hidden; }
-      .do-mm-live-stats-close { position:absolute; right:5px; top:5px; width:20px; height:20px; border:1px solid ${THEME.border}; border-radius:5px; background:rgba(255,255,255,.55); color:${THEME.header}; font-size:15px; font-weight:800; line-height:16px; cursor:pointer; z-index:2; }
-      .do-mm-live-stats-close:hover { background:rgba(255,255,255,.9); }
-      .do-mm-live-stats-teams { display:flex; justify-content:space-between; gap:26px; margin:0 24px 5px 0; font-size:10px; font-weight:900; line-height:1.1; }
-      .do-mm-live-stats-teams span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46%; }
+      .do-mm-live-stats-toggle { height:112px; min-height:112px; border:1px solid #b8871f; border-radius:6px; background:#d7ab4b; color:#2f2a1c; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px 0; box-shadow:0 1px 2px rgba(0,0,0,.12); transition:filter .15s ease, transform .15s ease, box-shadow .15s ease; }
+      .do-mm-live-stats-toggle span { display:block; transform:rotate(-90deg); white-space:nowrap; font-size:10px; font-weight:900; letter-spacing:.55px; }
+      .do-mm-live-stats-toggle:hover { filter:brightness(1.05); box-shadow:0 2px 5px rgba(0,0,0,.16); }
+      .do-mm-live-stats-wrap { position:relative; height:112px; min-height:112px; overflow:visible; }
+      .do-mm-live-stats-box { position:relative; height:112px; min-height:112px; padding:10px 12px 9px; border:1px solid ${THEME.border}; border-radius:8px; background:${THEME.panel}; overflow:hidden; }
+      .do-mm-live-stats-close { position:absolute; right:-7px; top:-7px; width:17px; height:17px; border:1px solid ${THEME.border}; border-radius:50%; background:#fff; color:${THEME.header}; font-size:12px; font-weight:900; line-height:14px; padding:0; cursor:pointer; z-index:4; box-shadow:0 1px 3px rgba(0,0,0,.16); }
+      .do-mm-live-stats-close:hover { background:#fff; transform:scale(1.05); }
       .do-mm-live-stats-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:14px; align-items:start; }
-      .do-mm-live-stats-col { display:flex; flex-direction:column; gap:3px; min-width:0; }
+      .do-mm-live-stats-col { display:flex; flex-direction:column; justify-content:space-between; gap:4px; min-width:0; height:92px; }
       .do-mm-live-stat-row { min-width:0; }
-      .do-mm-live-stat-values { display:grid; grid-template-columns:26px 1fr 26px; gap:4px; align-items:center; font-size:10px; line-height:1.05; }
+      .do-mm-live-stat-values { display:grid; grid-template-columns:30px 1fr 30px; gap:4px; align-items:center; font-size:11px; line-height:1.05; }
       .do-mm-live-stat-values b:first-child { text-align:left; }
       .do-mm-live-stat-values b:last-child { text-align:right; }
       .do-mm-live-stat-values > b { display:flex; align-items:center; gap:4px; }
@@ -2388,8 +2392,8 @@
       .do-mm-live-card-count { font-weight:900; font-variant-numeric:tabular-nums; }
       .do-mm-live-card-count.yellow { color:#c49b00; }
       .do-mm-live-card-count.red { color:#d92525; }
-      .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:9px; font-weight:900; letter-spacing:.2px; white-space:nowrap; }
-      .do-mm-live-stat-track { position:relative; height:4px; margin-top:1px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
+      .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:10px; font-weight:900; letter-spacing:.25px; white-space:nowrap; }
+      .do-mm-live-stat-track { position:relative; height:5px; margin-top:2px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
       .do-mm-live-stat-fill { position:absolute; top:0; bottom:0; }
       .do-mm-live-stat-fill.home { left:0; border-radius:999px 0 0 999px; }
       .do-mm-live-stat-fill.away { right:0; border-radius:0 999px 999px 0; }
