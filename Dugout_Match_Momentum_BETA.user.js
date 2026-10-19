@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.3
-// @description  BETA 2.0.3 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
+// @version      2.0.4
+// @description  BETA 2.0.4 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -1390,16 +1390,63 @@
   }
 
 
-  function appendSvgIcon(parent, type, x, y, size = 18, color = THEME.text, tooltip = '') {
+  function positionChartTooltip(ev, host, tooltipEl) {
+    if (!host || !tooltipEl) return;
+    const hostRect = host.getBoundingClientRect();
+    const margin = 8;
+    const offset = 12;
+
+    tooltipEl.style.left = '0px';
+    tooltipEl.style.top = '0px';
+    tooltipEl.hidden = false;
+
+    const tipRect = tooltipEl.getBoundingClientRect();
+    let left = ev.clientX - hostRect.left + offset;
+    let top = ev.clientY - hostRect.top - tipRect.height - offset;
+
+    if (left + tipRect.width > hostRect.width - margin) {
+      left = ev.clientX - hostRect.left - tipRect.width - offset;
+    }
+    if (top < margin) {
+      top = ev.clientY - hostRect.top + offset;
+    }
+
+    left = clamp(left, margin, Math.max(margin, hostRect.width - tipRect.width - margin));
+    top = clamp(top, margin, Math.max(margin, hostRect.height - tipRect.height - margin));
+
+    tooltipEl.style.left = `${left}px`;
+    tooltipEl.style.top = `${top}px`;
+  }
+
+  function appendSvgIcon(parent, type, x, y, size = 18, color = THEME.text, tooltip = '', tooltipHost = null, tooltipEl = null) {
     const ns = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(ns, 'g');
     g.setAttribute('transform', `translate(${x - size / 2} ${y - size / 2}) scale(${size / 24})`);
     g.setAttribute('color', color);
-    if (tooltip) {
-      const title = document.createElementNS(ns, 'title');
-      title.textContent = tooltip;
-      g.appendChild(title);
-      g.style.cursor = 'help';
+
+    // A transparent hit area makes hover detection reliable even for icons
+    // made mostly of thin SVG strokes. Native SVG <title> tooltips are not used
+    // because browsers can delay them and show a help/question-mark cursor first.
+    const hit = document.createElementNS(ns, 'rect');
+    hit.setAttribute('x', '-4');
+    hit.setAttribute('y', '-4');
+    hit.setAttribute('width', '32');
+    hit.setAttribute('height', '32');
+    hit.setAttribute('rx', '5');
+    hit.setAttribute('fill', 'transparent');
+    hit.setAttribute('pointer-events', 'all');
+    g.appendChild(hit);
+
+    if (tooltip && tooltipHost && tooltipEl) {
+      g.style.cursor = 'default';
+      const show = ev => {
+        tooltipEl.textContent = tooltip;
+        positionChartTooltip(ev, tooltipHost, tooltipEl);
+      };
+      g.addEventListener('pointerenter', show);
+      g.addEventListener('pointermove', show);
+      g.addEventListener('pointerleave', () => { tooltipEl.hidden = true; });
+      g.addEventListener('pointercancel', () => { tooltipEl.hidden = true; });
     }
 
     const temp = document.createElementNS(ns, 'svg');
@@ -1412,6 +1459,14 @@
 
   function drawMomentumSvg(md, host) {
     host.textContent = '';
+    host.classList.add('do-mm-chart-host');
+
+    const tooltipEl = document.createElement('div');
+    tooltipEl.className = 'do-mm-chart-tooltip';
+    tooltipEl.hidden = true;
+    tooltipEl.setAttribute('role', 'tooltip');
+    host.appendChild(tooltipEl);
+
     const width = 1120;
     const baseHeight = 640;
     const left = 44;
@@ -1647,9 +1702,15 @@
       list.forEach((ev, j) => {
         let iconColor = THEME.text;
         if (ev.event_type === 'injury') iconColor = THEME.red;
-        const hoverName = ev.player ? ev.player : eventLabel(ev.event_type);
+
+        let hoverName = ev.player ? ev.player : eventLabel(ev.event_type);
+        if (ev.event_type === 'substitution' && ev.detail) {
+          const incoming = String(ev.detail).replace(/^\s*->\s*/, '').trim();
+          if (incoming) hoverName = `${hoverName} → ${incoming}`;
+        }
+
         const hoverText = `${displayTime(ev)}  ${hoverName}`;
-        appendSvgIcon(svg, ev.event_type, cx, ys[j], sizes[j], iconColor, hoverText);
+        appendSvgIcon(svg, ev.event_type, cx, ys[j], sizes[j], iconColor, hoverText, host, tooltipEl);
       });
     }
 
@@ -2191,6 +2252,9 @@
       .do-mm-layout-legacy .do-mm-stats-box { margin-top:0; }
       .do-mm-left { min-width:0; }
       .do-mm-svg { width:100%; height:auto; display:block; }
+      .do-mm-chart-host { position:relative; }
+      .do-mm-chart-tooltip { position:absolute; z-index:30; max-width:320px; padding:6px 9px; border:1px solid rgba(0,0,0,.22); border-radius:6px; background:rgba(32,37,34,.96); color:#fff; box-shadow:0 2px 8px rgba(0,0,0,.22); font-size:11px; font-weight:700; line-height:1.25; white-space:nowrap; pointer-events:none; }
+      .do-mm-chart-tooltip[hidden] { display:none !important; }
       .do-mm-legend { display:flex; flex:1 1 auto; flex-wrap:wrap; gap:12px 22px; justify-content:center; align-items:center; padding:0 8px; color:${THEME.text}; font-size:12px; }
       .do-mm-legend > span { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
       .do-mm-icon { display:block; flex:0 0 auto; color:${THEME.text}; overflow:visible; }
