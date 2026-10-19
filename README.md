@@ -41,9 +41,9 @@ Kliknij **Install / Zainstaluj**.
 
 > Jeżeli po kliknięciu linku zobaczysz tylko kod źródłowy, sprawdź, czy Tampermonkey jest aktywny i ma uprawnienia do działania na stronach `raw.githubusercontent.com`.
 
-### Wersja BETA 2.0.9
+### Wersja BETA 2.0.10
 
-Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **DEF / OFF**, podglądu zawodnika i minuty po najechaniu na ikonę na wykresie oraz kompaktowego panelu **STAT Live** z bieżącymi statystykami meczu.
+Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **DEF / OFF**, podglądu zawodnika i minuty po najechaniu na ikonę na wykresie oraz kompaktowego panelu **STAT Live** z bieżącymi statystykami meczu oraz pionowej linii aktualnej minuty na wykresie podczas meczu.
 
 **[Zainstaluj Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
 
@@ -159,9 +159,9 @@ Click **Install**.
 
 > If you only see the source code after opening the link, make sure Tampermonkey is enabled and has permission to run on `raw.githubusercontent.com`.
 
-### BETA version 2.0.9
+### BETA version 2.0.10
 
-You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **DEF / OFF** toggle, player + match time tooltips on chart icons, and the compact **STAT Live** panel with live match statistics.
+You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **DEF / OFF** toggle, player + match time tooltips on chart icons, and the compact **STAT Live** panel with live match statistics, plus a vertical current-minute guide on the chart during live matches.
 
 **[Install Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
 

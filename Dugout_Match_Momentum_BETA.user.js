@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.9
-// @description  BETA 2.0.8 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
+// @version      2.0.10
+// @description  BETA 2.0.10 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -37,6 +37,8 @@
     fallbackHome: '#c65151',
     fallbackAway: '#4f79a7',
   };
+
+  const LIVE_MINUTE_COLOR = '#d33b2f';
 
   const BAR_WEIGHTS = {
     goal: 10.0,
@@ -1715,6 +1717,18 @@
       svg.appendChild(svgEl('rect', { x: cx - barW / 2, y: midY, width: barW, height: h, rx: 2.5, fill: md.colors.away, opacity: 0.88 }));
     });
 
+    // During a live match, show the current commentary minute as a vertical
+    // guide. It uses exactly the same colour as the minute displayed in the
+    // score panel and moves whenever the live view is re-rendered.
+    const liveMinute = isMatchInProgress() ? currentCommentaryMinute() : null;
+    if (liveMinute != null) {
+      const minuteX = x(clamp(liveMinute, 0, maxMinute));
+      svg.appendChild(svgEl('line', {
+        x1: minuteX, x2: minuteX, y1: top, y2: plotBottom,
+        stroke: LIVE_MINUTE_COLOR, 'stroke-width': 2.2, opacity: 0.88,
+      }));
+    }
+
     // Event icons are positioned strictly outside the bar. Because yScale was
     // solved from the stack constraints above, no corrective shifting is
     // needed and no stack can enter the HALF-TIME/EXTRA-TIME or scorer bands.
@@ -2393,7 +2407,7 @@
       .do-mm-badge .do-mv-badge, .do-mm-badge .do-mm-fallback-badge { max-width:52px !important; max-height:52px !important; width:auto !important; height:auto !important; object-fit:contain; }
       .do-mm-badge .do-mv-badge-stack { transform:scale(1.18); transform-origin:center; }
       .do-mm-scoreblock { min-width:150px; text-align:center; line-height:1.05; }
-      .do-mm-live-minute { display:block; margin-top:4px; color:#d33b2f; font-size:12px; font-weight:900; letter-spacing:.2px; }
+      .do-mm-live-minute { display:block; margin-top:4px; color:${LIVE_MINUTE_COLOR}; font-size:12px; font-weight:900; letter-spacing:.2px; }
       .do-mm-lang-switch { display:inline-flex; justify-content:center; gap:4px; }
       .do-mm-chart-tools { display:flex; align-items:center; gap:12px; padding:8px 8px 12px; }
       .do-mm-mode-switch { position:absolute; left:4px; top:1px; display:inline-flex; align-items:center; padding:2px; border:1px solid ${THEME.border}; border-radius:999px; background:rgba(255,255,255,.55); }
