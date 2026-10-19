@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.8
+// @version      2.0.9
 // @description  BETA 2.0.8 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
@@ -1836,7 +1836,11 @@
       [tr('miniShots'), tr('shotsTotal'), hs.total, as.total],
       [tr('miniOn'), tr('shotsOn'), hs.on, as.on],
       [tr('miniOff'), tr('shotsOff'), hs.off, as.off],
-      [tr('miniCards'), tr('cards'), hYellow + hRed, aYellow + aRed],
+      [
+        tr('miniCards'), tr('cards'), hYellow + hRed, aYellow + aRed,
+        `<span class="do-mm-live-card-count yellow">${hYellow}</span><span class="do-mm-live-card-count red">${hRed}</span>`,
+        `<span class="do-mm-live-card-count yellow">${aYellow}</span><span class="do-mm-live-card-count red">${aRed}</span>`
+      ],
     ];
     const rightRows = [
       [tr('miniFouls'), tr('fouls'), md.extras.home.fouls, md.extras.away.fouls],
@@ -1846,13 +1850,15 @@
     ];
 
     const splitColor = statBarSeparatorColor(md.colors.home, md.colors.away);
-    const renderRow = ([shortLabel, fullLabel, hv, av]) => {
+    const renderRow = ([shortLabel, fullLabel, hv, av, hDisplay = null, aDisplay = null]) => {
       const h = Number(hv || 0), a = Number(av || 0), total = h + a;
       const hp = total > 0 ? (h / total) * 100 : 0;
       const ap = total > 0 ? (a / total) * 100 : 0;
       const showSplit = h > 0 && a > 0;
+      const homeValue = hDisplay ?? esc(String(hv));
+      const awayValue = aDisplay ?? esc(String(av));
       return `<div class="do-mm-live-stat-row" title="${esc(fullLabel)}">
-        <div class="do-mm-live-stat-values"><b>${hv}</b><span>${esc(shortLabel)}</span><b>${av}</b></div>
+        <div class="do-mm-live-stat-values"><b>${homeValue}</b><span>${esc(shortLabel)}</span><b>${awayValue}</b></div>
         <div class="do-mm-live-stat-track">
           <div class="do-mm-live-stat-fill home" style="width:${hp}%;background:${md.colors.home}"></div>
           <div class="do-mm-live-stat-fill away" style="width:${ap}%;background:${md.colors.away}"></div>
@@ -2362,6 +2368,12 @@
       .do-mm-live-stat-values { display:grid; grid-template-columns:26px 1fr 26px; gap:4px; align-items:center; font-size:10px; line-height:1.05; }
       .do-mm-live-stat-values b:first-child { text-align:left; }
       .do-mm-live-stat-values b:last-child { text-align:right; }
+      .do-mm-live-stat-values > b { display:flex; align-items:center; gap:4px; }
+      .do-mm-live-stat-values > b:first-child { justify-content:flex-start; }
+      .do-mm-live-stat-values > b:last-child { justify-content:flex-end; }
+      .do-mm-live-card-count { font-weight:900; font-variant-numeric:tabular-nums; }
+      .do-mm-live-card-count.yellow { color:#c49b00; }
+      .do-mm-live-card-count.red { color:#d92525; }
       .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:9px; font-weight:900; letter-spacing:.2px; white-space:nowrap; }
       .do-mm-live-stat-track { position:relative; height:4px; margin-top:1px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
       .do-mm-live-stat-fill { position:absolute; top:0; bottom:0; }
