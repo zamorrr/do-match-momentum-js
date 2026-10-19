@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.2
-// @description  BETA 2.0.2 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
+// @version      2.0.3
+// @description  BETA 2.0.3 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -155,7 +155,7 @@
       shotsOn: 'SHOTS ON TARGET', shotsOff: 'SHOTS OFF TARGET', cards: 'CARDS',
       fouls: 'FOULS', offsides: 'OFFSIDES', corners: 'CORNERS', freeKicks: 'FREE KICKS',
       timeline: 'MATCH TIMELINE', firstHalf: '1ST HALF', secondHalf: '2ND HALF',
-      matchMomentum: 'MATCH MOMENTUM',
+      matchMomentum: 'MATCH MOMENTUM', modeDefense: 'Defense', modeOffense: 'Offense',
     },
     pl: {
       event: {
@@ -170,7 +170,7 @@
       shotsOn: 'STRZAŁY CELNE', shotsOff: 'STRZAŁY NIECELNE', cards: 'KARTKI',
       fouls: 'FAULE', offsides: 'SPALONE', corners: 'RZUTY ROŻNE', freeKicks: 'RZUTY WOLNE',
       timeline: 'PRZEBIEG MECZU', firstHalf: '1. POŁOWA', secondHalf: '2. POŁOWA',
-      matchMomentum: 'MATCH MOMENTUM',
+      matchMomentum: 'MATCH MOMENTUM', modeDefense: 'Defensywa', modeOffense: 'Ofensywa',
     },
   };
 
@@ -1390,11 +1390,17 @@
   }
 
 
-  function appendSvgIcon(parent, type, x, y, size = 18, color = THEME.text) {
+  function appendSvgIcon(parent, type, x, y, size = 18, color = THEME.text, tooltip = '') {
     const ns = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(ns, 'g');
     g.setAttribute('transform', `translate(${x - size / 2} ${y - size / 2}) scale(${size / 24})`);
     g.setAttribute('color', color);
+    if (tooltip) {
+      const title = document.createElementNS(ns, 'title');
+      title.textContent = tooltip;
+      g.appendChild(title);
+      g.style.cursor = 'help';
+    }
 
     const temp = document.createElementNS(ns, 'svg');
     temp.setAttribute('viewBox', '0 0 24 24');
@@ -1641,7 +1647,9 @@
       list.forEach((ev, j) => {
         let iconColor = THEME.text;
         if (ev.event_type === 'injury') iconColor = THEME.red;
-        appendSvgIcon(svg, ev.event_type, cx, ys[j], sizes[j], iconColor);
+        const hoverName = ev.player ? ev.player : eventLabel(ev.event_type);
+        const hoverText = `${displayTime(ev)}  ${hoverName}`;
+        appendSvgIcon(svg, ev.event_type, cx, ys[j], sizes[j], iconColor, hoverText);
       });
     }
 
@@ -1829,6 +1837,7 @@
     host.innerHTML = `
       <div class="do-mm-timeline-box">
         <div class="do-mm-timeline-title">
+          ${modeSwitchHtml()}
           <span>${tr('timeline')}</span>
           <button type="button" class="do-mm-timeline-sort ${timelineNewestFirst ? 'active' : ''}" title="${esc(sortTitle)}" aria-label="${esc(sortTitle)}">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1847,6 +1856,7 @@
         drawTimeline(md, host);
       });
     }
+    bindModeSwitcher(host);
   }
 
   // ---------------------------------------------------------------------------
@@ -1869,9 +1879,9 @@
     try {
       return (typeof GM_info !== 'undefined' && GM_info && GM_info.script && GM_info.script.version)
         ? String(GM_info.script.version)
-        : '2.0.0';
+        : '2.0.3';
     } catch (_) {
-      return '2.0.0';
+      return '2.0.3';
     }
   }
 
@@ -1887,10 +1897,9 @@
 
   function modeSwitchHtml() {
     return `
-      <div class="do-mm-mode-switch" role="group" aria-label="Momentum mode">
-        <button type="button" data-mode="defense" class="${currentMode === 'defense' ? 'active' : ''}">DEFENSE</button>
-        <span class="do-mm-mode-arrow" aria-hidden="true">↔</span>
-        <button type="button" data-mode="offense" class="${currentMode === 'offense' ? 'active' : ''}">OFFENSE</button>
+      <div class="do-mm-mode-switch" role="group" aria-label="${esc(currentLang === 'pl' ? 'Tryb przebiegu meczu' : 'Match timeline mode')}">
+        <button type="button" data-mode="defense" class="${currentMode === 'defense' ? 'active' : ''}" title="${esc(tr('modeDefense'))}" aria-label="${esc(tr('modeDefense'))}">DEF</button>
+        <button type="button" data-mode="offense" class="${currentMode === 'offense' ? 'active' : ''}" title="${esc(tr('modeOffense'))}" aria-label="${esc(tr('modeOffense'))}">OFF</button>
       </div>`;
   }
 
@@ -1949,7 +1958,6 @@
       </div>`;
 
     const chartBlock = `
-      ${modeSwitchHtml()}
       <div id="do-mm-chart"></div>
       <div class="do-mm-chart-tools">
         <span class="do-mm-lang-switch do-mm-lang-switch-inline" aria-label="Language">
@@ -1989,7 +1997,6 @@
     }
 
     bindLanguageSwitcher(app);
-    bindModeSwitcher(app);
     updateLanguageSwitcher();
 
     const viewEvents = eventsForCurrentMode(md);
@@ -2164,11 +2171,11 @@
       .do-mm-scoreblock { min-width:150px; text-align:center; line-height:1.05; }
       .do-mm-lang-switch { display:inline-flex; justify-content:center; gap:4px; }
       .do-mm-chart-tools { display:flex; align-items:center; gap:12px; padding:8px 8px 12px; }
-      .do-mm-mode-switch { display:flex; align-items:center; justify-content:center; gap:8px; padding:4px 8px 8px; }
-      .do-mm-mode-switch button { min-width:92px; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:999px; background:rgba(255,255,255,.62); color:var(--do-mm-header-text, ${THEME.text}); padding:6px 12px; font-size:11px; font-weight:900; letter-spacing:.45px; cursor:pointer; }
-      .do-mm-mode-switch button.active { background:var(--do-mm-header-text, ${THEME.text}); color:var(--do-mm-header-bg, #f5f5f0); }
-      .do-mm-mode-switch button:hover { filter:brightness(.97); }
-      .do-mm-mode-arrow { color:${THEME.subtle}; font-size:15px; font-weight:800; }
+      .do-mm-mode-switch { position:absolute; left:4px; top:1px; display:inline-flex; align-items:center; padding:2px; border:1px solid ${THEME.border}; border-radius:999px; background:rgba(255,255,255,.55); }
+      .do-mm-mode-switch button { min-width:34px; height:24px; border:0; border-radius:999px; background:transparent; color:${THEME.subtle}; padding:0 7px; font-size:10px; font-weight:900; letter-spacing:.35px; cursor:pointer; line-height:24px; }
+      .do-mm-mode-switch button.active { background:${THEME.header}; color:#fff; }
+      .do-mm-mode-switch button:hover { background:rgba(31,91,36,.10); color:${THEME.header}; }
+      .do-mm-mode-switch button.active:hover { background:${THEME.header}; color:#fff; }
       .do-mm-lang-switch-inline { flex:0 0 auto; align-items:center; }
       .do-mm-lang-switch button { display:inline-flex; align-items:center; gap:4px; min-width:50px; justify-content:center; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:999px; background:rgba(255,255,255,.62); color:var(--do-mm-header-text, ${THEME.text}); padding:3px 7px; font-size:10px; font-weight:800; cursor:pointer; line-height:1.2; }
       .do-mm-flag { width:18px; height:11px; display:block; flex:0 0 auto; border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.10); }
@@ -2209,7 +2216,7 @@
       .do-mm-card.red { background:#d92525; }
       #do-mm-timeline { min-width:0; }
       .do-mm-timeline-box { padding:12px 12px 18px; overflow-y:auto; overflow-x:hidden; }
-      .do-mm-timeline-title { position:relative; display:flex; align-items:center; justify-content:center; min-height:28px; padding:4px 36px 10px; text-align:center; font-size:16px; font-weight:900; color:${THEME.header}; }
+      .do-mm-timeline-title { position:relative; display:flex; align-items:center; justify-content:center; min-height:28px; padding:4px 82px 10px; text-align:center; font-size:16px; font-weight:900; color:${THEME.header}; }
       .do-mm-timeline-sort { position:absolute; right:4px; top:1px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; padding:4px; border:1px solid ${THEME.border}; border-radius:7px; background:rgba(255,255,255,.50); color:${THEME.header}; cursor:pointer; }
       .do-mm-timeline-sort:hover { background:rgba(255,255,255,.88); }
       .do-mm-timeline-sort.active { background:${THEME.header}; color:#fff; border-color:${THEME.header}; }

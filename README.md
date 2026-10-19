@@ -41,9 +41,9 @@ Kliknij **Install / Zainstaluj**.
 
 > Jeżeli po kliknięciu linku zobaczysz tylko kod źródłowy, sprawdź, czy Tampermonkey jest aktywny i ma uprawnienia do działania na stronach `raw.githubusercontent.com`.
 
-### Wersja BETA 2.0.2
+### Wersja BETA 2.0.3
 
-Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **OFFENSE / DEFENSE**.
+Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **DEF / OFF** w nagłówku przebiegu meczu oraz podglądu zawodnika i minuty po najechaniu na ikonę na wykresie.
 
 **[Zainstaluj Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
 
@@ -159,9 +159,9 @@ Click **Install**.
 
 > If you only see the source code after opening the link, make sure Tampermonkey is enabled and has permission to run on `raw.githubusercontent.com`.
 
-### BETA version 2.0.2
+### BETA version 2.0.3
 
-You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **OFFENSE / DEFENSE** view switch.
+You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **DEF / OFF** toggle in the match timeline header and player + match time tooltips when hovering chart icons.
 
 **[Install Dugout Match Momentum BETA](https://raw.githubusercontent.com/zamorrr/do-match-momentum-js/main/Dugout_Match_Momentum_BETA.user.js)**
 
