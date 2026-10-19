@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.6
-// @description  BETA 2.0.5 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
+// @version      2.0.7
+// @description  BETA 2.0.7 - Match Momentum with switchable OFFENSE/DEFENSE views, live compact statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -156,6 +156,8 @@
       fouls: 'FOULS', offsides: 'OFFSIDES', corners: 'CORNERS', freeKicks: 'FREE KICKS',
       timeline: 'MATCH TIMELINE', firstHalf: '1ST HALF', secondHalf: '2ND HALF',
       matchMomentum: 'MATCH MOMENTUM', modeDefense: 'Defense', modeOffense: 'Offense',
+      liveStats: 'STAT Live', liveStatsHide: 'Hide live statistics',
+      miniShots: 'SHT', miniOn: 'ON', miniOff: 'OFF', miniCards: 'CRD', miniFouls: 'F', miniOffsides: 'OFFS', miniCorners: 'COR', miniFreeKicks: 'FK',
     },
     pl: {
       event: {
@@ -171,12 +173,15 @@
       fouls: 'FAULE', offsides: 'SPALONE', corners: 'RZUTY ROŻNE', freeKicks: 'RZUTY WOLNE',
       timeline: 'PRZEBIEG MECZU', firstHalf: '1. POŁOWA', secondHalf: '2. POŁOWA',
       matchMomentum: 'MATCH MOMENTUM', modeDefense: 'Defensywa', modeOffense: 'Ofensywa',
+      liveStats: 'STAT Live', liveStatsHide: 'Ukryj statystyki live',
+      miniShots: 'STRZ', miniOn: 'CEL', miniOff: 'NCL', miniCards: 'KART', miniFouls: 'F', miniOffsides: 'SPAL', miniCorners: 'ROŻ', miniFreeKicks: 'WOL',
     },
   };
 
   let currentLang = 'en';
   let currentMode = 'offense';
   let timelineNewestFirst = false;
+  let liveStatsOpen = false;
   const tr = key => I18N[currentLang]?.[key] ?? I18N.en[key] ?? key;
   const eventLabel = type => I18N[currentLang]?.event?.[type] ?? I18N.en.event[type] ?? type;
 
@@ -1806,6 +1811,75 @@
     return { total: goals + on + off + blocked, on: goals + on, off: off + blocked };
   }
 
+  function liveMiniStatsHtml(md) {
+    const hs = shotStats(md, 'home');
+    const as = shotStats(md, 'away');
+    const oh = md.officialStats.home;
+    const oa = md.officialStats.away;
+    if (oh.shots_on != null) hs.on = oh.shots_on;
+    if (oa.shots_on != null) as.on = oa.shots_on;
+    if (oh.shots_off != null) hs.off = oh.shots_off;
+    if (oa.shots_off != null) as.off = oa.shots_off;
+    if (oh.shots_on != null && oh.shots_off != null) hs.total = oh.shots_on + oh.shots_off;
+    if (oa.shots_on != null && oa.shots_off != null) as.total = oa.shots_on + oa.shots_off;
+
+    const hYellow = oh.yellow_cards ?? eventCount(md, 'home', 'yellow');
+    const hRed = oh.red_cards ?? eventCount(md, 'home', 'red');
+    const aYellow = oa.yellow_cards ?? eventCount(md, 'away', 'yellow');
+    const aRed = oa.red_cards ?? eventCount(md, 'away', 'red');
+    const hOffside = oh.offsides ?? eventCount(md, 'home', 'offside');
+    const aOffside = oa.offsides ?? eventCount(md, 'away', 'offside');
+    const hCorners = oh.corners ?? md.extras.home.corners;
+    const aCorners = oa.corners ?? md.extras.away.corners;
+
+    const rows = [
+      [tr('miniShots'), tr('shotsTotal'), hs.total, as.total],
+      [tr('miniOn'), tr('shotsOn'), hs.on, as.on],
+      [tr('miniOff'), tr('shotsOff'), hs.off, as.off],
+      [tr('miniCards'), tr('cards'), hYellow + hRed, aYellow + aRed],
+      [tr('miniFouls'), tr('fouls'), md.extras.home.fouls, md.extras.away.fouls],
+      [tr('miniOffsides'), tr('offsides'), hOffside, aOffside],
+      [tr('miniCorners'), tr('corners'), hCorners, aCorners],
+      [tr('miniFreeKicks'), tr('freeKicks'), md.extras.home.free_kicks, md.extras.away.free_kicks],
+    ];
+
+    const splitColor = statBarSeparatorColor(md.colors.home, md.colors.away);
+    const body = rows.map(([shortLabel, fullLabel, hv, av]) => {
+      const h = Number(hv || 0), a = Number(av || 0), total = h + a;
+      const hp = total > 0 ? (h / total) * 100 : 0;
+      const ap = total > 0 ? (a / total) * 100 : 0;
+      const showSplit = h > 0 && a > 0;
+      return `<div class="do-mm-live-stat-row" title="${esc(fullLabel)}">
+        <div class="do-mm-live-stat-values"><b>${hv}</b><span>${esc(shortLabel)}</span><b>${av}</b></div>
+        <div class="do-mm-live-stat-track">
+          <div class="do-mm-live-stat-fill home" style="width:${hp}%;background:${md.colors.home}"></div>
+          <div class="do-mm-live-stat-fill away" style="width:${ap}%;background:${md.colors.away}"></div>
+          ${showSplit ? `<div class="do-mm-stat-split" style="left:${hp}%;background:${splitColor}"></div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="do-mm-live-stats-box">
+      <div class="do-mm-live-stats-head">
+        <span>${esc(tr('liveStats'))}</span>
+        <button type="button" class="do-mm-live-stats-close" title="${esc(tr('liveStatsHide'))}" aria-label="${esc(tr('liveStatsHide'))}">×</button>
+      </div>
+      <div class="do-mm-live-stats-teams"><span style="color:${md.colors.homeText}">${esc(md.homeName)}</span><span style="color:${md.colors.awayText}">${esc(md.awayName)}</span></div>
+      <div class="do-mm-live-stats-grid">${body}</div>
+    </div>`;
+  }
+
+  function bindLiveStatsControls(root) {
+    const openBtn = root.querySelector('.do-mm-live-stats-toggle');
+    if (openBtn) openBtn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation(); liveStatsOpen = true; renderApp();
+    });
+    const closeBtn = root.querySelector('.do-mm-live-stats-close');
+    if (closeBtn) closeBtn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation(); liveStatsOpen = false; renderApp();
+    });
+  }
+
   function drawStats(md, host) {
     const hs = shotStats(md, 'home');
     const as = shotStats(md, 'away');
@@ -1980,9 +2054,9 @@
     try {
       return (typeof GM_info !== 'undefined' && GM_info && GM_info.script && GM_info.script.version)
         ? String(GM_info.script.version)
-        : '2.0.5';
+        : '2.0.7';
     } catch (_) {
-      return '2.0.5';
+      return '2.0.7';
     }
   }
 
@@ -2037,8 +2111,7 @@
     const hasNativeStatsTab = Boolean(document.querySelector('.do-mv-tab[data-mv-pane="doMvStats"], [data-mv-pane="doMvStats"]'));
     const liveMinute = isMatchInProgress() ? currentCommentaryMinute() : null;
     const liveMinuteHtml = liveMinute != null ? `<span class="do-mm-live-minute">${liveMinute}'</span>` : '';
-    const momentumHeader = hasNativeStatsTab ? '' : `
-      <div class="do-mm-topline">
+    const momentumHeaderInner = `
         <div class="do-mm-topteam home">
           <div class="do-mm-badge">${md.homeBadgeHtml || ''}</div>
           <span>${esc(md.homeName)}</span>
@@ -2051,8 +2124,7 @@
         <div class="do-mm-topteam away">
           <span>${esc(md.awayName)}</span>
           <div class="do-mm-badge">${md.awayBadgeHtml || ''}</div>
-        </div>
-      </div>`;
+        </div>`;
 
     const creatorInfo = `
       <div class="do-mm-creator-info">
@@ -2074,23 +2146,34 @@
       </div>`;
 
     const isLegacyInterface = detectMatchInterface() === 'legacy';
+    const liveCompactAvailable = !isLegacyInterface && isMatchInProgress() && !hasNativeStatsTab;
+    if (!liveCompactAvailable) liveStatsOpen = false;
+
+    const normalHeader = hasNativeStatsTab ? '' : `<div class="do-mm-topline">${momentumHeaderInner}</div>`;
+    const liveHeaderArea = !liveCompactAvailable ? normalHeader : (liveStatsOpen
+      ? `<div class="do-mm-live-head-grid open">
+           <div class="do-mm-topline do-mm-topline-live">${momentumHeaderInner}</div>
+           <div class="do-mm-live-stats-slot">${liveMiniStatsHtml(md)}</div>
+         </div>`
+      : `<div class="do-mm-live-head-grid closed">
+           <div class="do-mm-topline do-mm-topline-live do-mm-topline-wide">${momentumHeaderInner}</div>
+           <button type="button" class="do-mm-live-stats-toggle" title="${esc(tr('liveStats'))}" aria-label="${esc(tr('liveStats'))}"><span>${esc(tr('liveStats'))}</span></button>
+         </div>`);
+
     if (isLegacyInterface) {
-      // Legacy match view is much narrower. Keep every major panel in one
-      // vertical column so nothing is squeezed side-by-side:
-      // chart -> timeline -> statistics.
+      // Legacy match view remains a vertical stack.
       app.innerHTML = `
         ${creatorInfo}
-        ${momentumHeader}
+        ${normalHeader}
         <div class="do-mm-layout do-mm-layout-legacy">
           <div class="do-mm-legacy-chart">${chartBlock}</div>
           <div id="do-mm-timeline"></div>
           <div id="do-mm-stats"></div>
         </div>`;
     } else {
-      // New interface: preserve the existing two-column layout unchanged.
       app.innerHTML = `
         ${creatorInfo}
-        ${momentumHeader}
+        ${liveHeaderArea}
         <div class="do-mm-layout">
           <div class="do-mm-left">
             ${chartBlock}
@@ -2101,6 +2184,7 @@
     }
 
     bindLanguageSwitcher(app);
+    bindLiveStatsControls(app);
     updateLanguageSwitcher();
 
     const viewEvents = eventsForCurrentMode(md);
@@ -2259,6 +2343,28 @@
       #${APP_ID}.do-mm-pane.active { display:block; }
       #${APP_ID}, #${APP_ID} * { box-sizing:border-box; }
       .do-mm-topline { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:20px; align-items:center; margin:0 14px 12px; padding:8px 18px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,.08); font-size:20px; font-weight:800; }
+      .do-mm-live-head-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(330px, .9fr); gap:16px; margin:0 14px 12px; align-items:stretch; }
+      .do-mm-live-head-grid .do-mm-topline { margin:0; height:100%; }
+      .do-mm-live-head-grid.closed { grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
+      .do-mm-live-stats-toggle { min-height:76px; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px 0; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+      .do-mm-live-stats-toggle span { display:block; transform:rotate(-90deg); white-space:nowrap; font-size:10px; font-weight:900; letter-spacing:.45px; }
+      .do-mm-live-stats-toggle:hover { filter:brightness(.97); }
+      .do-mm-live-stats-box { height:100%; min-height:76px; padding:7px 10px 8px; border:1px solid ${THEME.border}; border-radius:8px; background:${THEME.panel}; overflow:hidden; }
+      .do-mm-live-stats-head { position:relative; display:flex; justify-content:center; align-items:center; min-height:20px; margin-bottom:3px; color:${THEME.header}; font-size:10px; font-weight:900; letter-spacing:.45px; }
+      .do-mm-live-stats-close { position:absolute; right:0; top:-2px; width:20px; height:20px; border:1px solid ${THEME.border}; border-radius:5px; background:rgba(255,255,255,.55); color:${THEME.header}; font-size:15px; font-weight:800; line-height:16px; cursor:pointer; }
+      .do-mm-live-stats-close:hover { background:rgba(255,255,255,.9); }
+      .do-mm-live-stats-teams { display:flex; justify-content:space-between; gap:10px; margin-bottom:4px; font-size:9px; font-weight:800; }
+      .do-mm-live-stats-teams span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46%; }
+      .do-mm-live-stats-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:10px; row-gap:2px; }
+      .do-mm-live-stat-row { min-width:0; }
+      .do-mm-live-stat-values { display:grid; grid-template-columns:24px 1fr 24px; gap:3px; align-items:center; font-size:9px; line-height:1.05; }
+      .do-mm-live-stat-values b:first-child { text-align:left; }
+      .do-mm-live-stat-values b:last-child { text-align:right; }
+      .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:8px; font-weight:800; letter-spacing:.2px; white-space:nowrap; }
+      .do-mm-live-stat-track { position:relative; height:3px; margin-top:1px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
+      .do-mm-live-stat-fill { position:absolute; top:0; bottom:0; }
+      .do-mm-live-stat-fill.home { left:0; border-radius:999px 0 0 999px; }
+      .do-mm-live-stat-fill.away { right:0; border-radius:0 999px 999px 0; }
       .do-mm-topteam { min-width:0; display:flex; align-items:center; gap:12px; color:var(--do-mm-header-text, ${THEME.text}); }
       .do-mm-creator-info { display:flex; align-items:center; justify-content:flex-start; gap:5px; padding:5px 14px 7px; color:${THEME.subtle}; font-size:10px; line-height:1.25; }
       .do-mm-creator-info .do-mm-version { font-weight:800; color:${THEME.text}; }
@@ -2357,6 +2463,10 @@
       .do-mm-legacy-wrap #${APP_ID} { margin-top:10px; background:${THEME.bg}; padding:12px; border:1px solid ${THEME.border}; border-radius:10px; }
       @media (max-width:1050px) {
         .do-mm-layout { grid-template-columns:1fr; }
+        .do-mm-live-head-grid, .do-mm-live-head-grid.closed { grid-template-columns:1fr; }
+        .do-mm-live-stats-toggle { min-height:30px; }
+        .do-mm-live-stats-toggle span { transform:none; }
+        .do-mm-live-stats-grid { grid-template-columns:1fr 1fr; }
         .do-mm-timeline-box { height:auto !important; max-height:none !important; overflow:visible; }
       }
       @media (max-width:650px) {
