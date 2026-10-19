@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.7
-// @description  BETA 2.0.7 - Match Momentum with switchable OFFENSE/DEFENSE views, live compact statistics, timeline and statistics.
+// @version      2.0.8
+// @description  BETA 2.0.8 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -1513,7 +1513,7 @@
 
     const width = 1120;
     const isCompactDesktop = detectMatchInterface() === 'new' && window.innerHeight <= 1000 && window.innerWidth >= 900;
-    const baseHeight = isCompactDesktop ? 540 : 640;
+    const baseHeight = isCompactDesktop ? 500 : 640;
     const left = 44;
     const right = 28;
     const maxMinute = md.hasExtraTime ? 120 : 90;
@@ -1832,11 +1832,13 @@
     const hCorners = oh.corners ?? md.extras.home.corners;
     const aCorners = oa.corners ?? md.extras.away.corners;
 
-    const rows = [
+    const leftRows = [
       [tr('miniShots'), tr('shotsTotal'), hs.total, as.total],
       [tr('miniOn'), tr('shotsOn'), hs.on, as.on],
       [tr('miniOff'), tr('shotsOff'), hs.off, as.off],
       [tr('miniCards'), tr('cards'), hYellow + hRed, aYellow + aRed],
+    ];
+    const rightRows = [
       [tr('miniFouls'), tr('fouls'), md.extras.home.fouls, md.extras.away.fouls],
       [tr('miniOffsides'), tr('offsides'), hOffside, aOffside],
       [tr('miniCorners'), tr('corners'), hCorners, aCorners],
@@ -1844,7 +1846,7 @@
     ];
 
     const splitColor = statBarSeparatorColor(md.colors.home, md.colors.away);
-    const body = rows.map(([shortLabel, fullLabel, hv, av]) => {
+    const renderRow = ([shortLabel, fullLabel, hv, av]) => {
       const h = Number(hv || 0), a = Number(av || 0), total = h + a;
       const hp = total > 0 ? (h / total) * 100 : 0;
       const ap = total > 0 ? (a / total) * 100 : 0;
@@ -1857,15 +1859,15 @@
           ${showSplit ? `<div class="do-mm-stat-split" style="left:${hp}%;background:${splitColor}"></div>` : ''}
         </div>
       </div>`;
-    }).join('');
+    };
 
     return `<div class="do-mm-live-stats-box">
-      <div class="do-mm-live-stats-head">
-        <span>${esc(tr('liveStats'))}</span>
-        <button type="button" class="do-mm-live-stats-close" title="${esc(tr('liveStatsHide'))}" aria-label="${esc(tr('liveStatsHide'))}">×</button>
-      </div>
+      <button type="button" class="do-mm-live-stats-close" title="${esc(tr('liveStatsHide'))}" aria-label="${esc(tr('liveStatsHide'))}">×</button>
       <div class="do-mm-live-stats-teams"><span style="color:${md.colors.homeText}">${esc(md.homeName)}</span><span style="color:${md.colors.awayText}">${esc(md.awayName)}</span></div>
-      <div class="do-mm-live-stats-grid">${body}</div>
+      <div class="do-mm-live-stats-grid">
+        <div class="do-mm-live-stats-col">${leftRows.map(renderRow).join('')}</div>
+        <div class="do-mm-live-stats-col">${rightRows.map(renderRow).join('')}</div>
+      </div>
     </div>`;
   }
 
@@ -2054,9 +2056,9 @@
     try {
       return (typeof GM_info !== 'undefined' && GM_info && GM_info.script && GM_info.script.version)
         ? String(GM_info.script.version)
-        : '2.0.7';
+        : '2.0.8';
     } catch (_) {
-      return '2.0.7';
+      return '2.0.8';
     }
   }
 
@@ -2343,25 +2345,25 @@
       #${APP_ID}.do-mm-pane.active { display:block; }
       #${APP_ID}, #${APP_ID} * { box-sizing:border-box; }
       .do-mm-topline { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:20px; align-items:center; margin:0 14px 12px; padding:8px 18px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,.08); font-size:20px; font-weight:800; }
-      .do-mm-live-head-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(330px, .9fr); gap:16px; margin:0 14px 12px; align-items:stretch; }
-      .do-mm-live-head-grid .do-mm-topline { margin:0; height:100%; }
+      .do-mm-live-head-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(330px, .9fr); gap:16px; margin:0 14px 12px; align-items:stretch; min-height:112px; height:112px; }
+      .do-mm-live-head-grid .do-mm-topline { margin:0; height:112px; min-height:112px; }
       .do-mm-live-head-grid.closed { grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
-      .do-mm-live-stats-toggle { min-height:76px; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px 0; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+      .do-mm-live-stats-toggle { height:112px; min-height:112px; border:1px solid var(--do-mm-header-border, ${THEME.border}); border-radius:6px; background:var(--do-mm-header-bg, #f5f5f0); color:var(--do-mm-header-text, ${THEME.text}); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px 0; box-shadow:0 1px 2px rgba(0,0,0,.08); }
       .do-mm-live-stats-toggle span { display:block; transform:rotate(-90deg); white-space:nowrap; font-size:10px; font-weight:900; letter-spacing:.45px; }
       .do-mm-live-stats-toggle:hover { filter:brightness(.97); }
-      .do-mm-live-stats-box { height:100%; min-height:76px; padding:7px 10px 8px; border:1px solid ${THEME.border}; border-radius:8px; background:${THEME.panel}; overflow:hidden; }
-      .do-mm-live-stats-head { position:relative; display:flex; justify-content:center; align-items:center; min-height:20px; margin-bottom:3px; color:${THEME.header}; font-size:10px; font-weight:900; letter-spacing:.45px; }
-      .do-mm-live-stats-close { position:absolute; right:0; top:-2px; width:20px; height:20px; border:1px solid ${THEME.border}; border-radius:5px; background:rgba(255,255,255,.55); color:${THEME.header}; font-size:15px; font-weight:800; line-height:16px; cursor:pointer; }
+      .do-mm-live-stats-box { position:relative; height:112px; min-height:112px; padding:9px 12px 8px; border:1px solid ${THEME.border}; border-radius:8px; background:${THEME.panel}; overflow:hidden; }
+      .do-mm-live-stats-close { position:absolute; right:5px; top:5px; width:20px; height:20px; border:1px solid ${THEME.border}; border-radius:5px; background:rgba(255,255,255,.55); color:${THEME.header}; font-size:15px; font-weight:800; line-height:16px; cursor:pointer; z-index:2; }
       .do-mm-live-stats-close:hover { background:rgba(255,255,255,.9); }
-      .do-mm-live-stats-teams { display:flex; justify-content:space-between; gap:10px; margin-bottom:4px; font-size:9px; font-weight:800; }
+      .do-mm-live-stats-teams { display:flex; justify-content:space-between; gap:26px; margin:0 24px 5px 0; font-size:10px; font-weight:900; line-height:1.1; }
       .do-mm-live-stats-teams span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46%; }
-      .do-mm-live-stats-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:10px; row-gap:2px; }
+      .do-mm-live-stats-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:14px; align-items:start; }
+      .do-mm-live-stats-col { display:flex; flex-direction:column; gap:3px; min-width:0; }
       .do-mm-live-stat-row { min-width:0; }
-      .do-mm-live-stat-values { display:grid; grid-template-columns:24px 1fr 24px; gap:3px; align-items:center; font-size:9px; line-height:1.05; }
+      .do-mm-live-stat-values { display:grid; grid-template-columns:26px 1fr 26px; gap:4px; align-items:center; font-size:10px; line-height:1.05; }
       .do-mm-live-stat-values b:first-child { text-align:left; }
       .do-mm-live-stat-values b:last-child { text-align:right; }
-      .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:8px; font-weight:800; letter-spacing:.2px; white-space:nowrap; }
-      .do-mm-live-stat-track { position:relative; height:3px; margin-top:1px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
+      .do-mm-live-stat-values span { text-align:center; color:${THEME.subtle}; font-size:9px; font-weight:900; letter-spacing:.2px; white-space:nowrap; }
+      .do-mm-live-stat-track { position:relative; height:4px; margin-top:1px; background:${THEME.track}; border-radius:999px; overflow:hidden; }
       .do-mm-live-stat-fill { position:absolute; top:0; bottom:0; }
       .do-mm-live-stat-fill.home { left:0; border-radius:999px 0 0 999px; }
       .do-mm-live-stat-fill.away { right:0; border-radius:0 999px 999px 0; }
