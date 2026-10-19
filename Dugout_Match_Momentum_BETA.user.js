@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.5
+// @version      2.0.6
 // @description  BETA 2.0.5 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
@@ -1507,7 +1507,8 @@
     host.appendChild(tooltipEl);
 
     const width = 1120;
-    const baseHeight = 640;
+    const isCompactDesktop = detectMatchInterface() === 'new' && window.innerHeight <= 1000 && window.innerWidth >= 900;
+    const baseHeight = isCompactDesktop ? 540 : 640;
     const left = 44;
     const right = 28;
     const maxMinute = md.hasExtraTime ? 120 : 90;

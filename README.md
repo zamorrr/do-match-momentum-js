@@ -41,7 +41,7 @@ Kliknij **Install / Zainstaluj**.
 
 > Jeżeli po kliknięciu linku zobaczysz tylko kod źródłowy, sprawdź, czy Tampermonkey jest aktywny i ma uprawnienia do działania na stronach `raw.githubusercontent.com`.
 
-### Wersja BETA 2.0.5
+### Wersja BETA 2.0.6
 
 Osobno możesz zainstalować wersję testową **Dugout Online - Match Momentum BETA**. Jest ona przeznaczona do testowania funkcji przygotowywanych do wersji 2.0, w tym przełączania widoku **DEF / OFF** w nagłówku przebiegu meczu oraz podglądu zawodnika i minuty po najechaniu na ikonę na wykresie.
 
@@ -159,7 +159,7 @@ Click **Install**.
 
 > If you only see the source code after opening the link, make sure Tampermonkey is enabled and has permission to run on `raw.githubusercontent.com`.
 
-### BETA version 2.0.5
+### BETA version 2.0.6
 
 You can also install the separate **Dugout Online - Match Momentum BETA** userscript. It is intended for testing features being developed for version 2.0, including the **DEF / OFF** toggle in the match timeline header and player + match time tooltips when hovering chart icons.
 
