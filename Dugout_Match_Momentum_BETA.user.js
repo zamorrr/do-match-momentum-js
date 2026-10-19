@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.4
-// @description  BETA 2.0.4 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
+// @version      2.0.5
+// @description  BETA 2.0.5 - Match Momentum with switchable OFFENSE/DEFENSE views, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
 // @match        https://www.dugout-online.com/game/*
@@ -413,6 +413,45 @@
     const h = Number(normText(document.querySelector('#goals_home')?.textContent)) || 0;
     const a = Number(normText(document.querySelector('#goals_away')?.textContent)) || 0;
     return [h, a];
+  }
+
+
+  function currentCommentaryMinute() {
+    const root = document.querySelector('#doMvCommentary') || document.querySelector('#events_content');
+    if (!root) return null;
+
+    let max = null;
+    for (const table of root.querySelectorAll('table')) {
+      const tds = table.querySelectorAll('td');
+      if (tds.length < 2) continue;
+      const tm = normText(tds[1].textContent).match(/\[(\d+):(\d+)\]/);
+      if (!tm) continue;
+      const minute = Number(tm[1]);
+      const seconds = Number(tm[2]);
+      if (!Number.isFinite(minute) || !Number.isFinite(seconds) || minute >= 125) continue;
+      const value = minute + seconds / 60;
+      if (max == null || value > max) max = value;
+    }
+
+    return max == null ? null : Math.ceil(max);
+  }
+
+  function isMatchInProgress() {
+    const mv = document.querySelector('.do-mv[data-status]');
+    if (mv) {
+      const status = String(mv.dataset.status || '').trim().toLowerCase();
+      if (status) return !['ended', 'finished', 'ft'].includes(status);
+    }
+
+    if (document.querySelector('.do-mv-status-ended')) return false;
+    const statusText = normText(document.querySelector('.do-mv-status')?.textContent).toLowerCase();
+    if (['ft', 'finished', 'ended'].includes(statusText)) return false;
+
+    const root = document.querySelector('#doMvCommentary') || document.querySelector('#events_content');
+    const text = normText(root?.textContent || '').toLowerCase();
+    if (text.includes('game ends.')) return false;
+
+    return currentCommentaryMinute() != null;
   }
 
   function parseTeamColors() {
@@ -1940,9 +1979,9 @@
     try {
       return (typeof GM_info !== 'undefined' && GM_info && GM_info.script && GM_info.script.version)
         ? String(GM_info.script.version)
-        : '2.0.3';
+        : '2.0.5';
     } catch (_) {
-      return '2.0.3';
+      return '2.0.5';
     }
   }
 
@@ -1995,6 +2034,8 @@
     }
 
     const hasNativeStatsTab = Boolean(document.querySelector('.do-mv-tab[data-mv-pane="doMvStats"], [data-mv-pane="doMvStats"]'));
+    const liveMinute = isMatchInProgress() ? currentCommentaryMinute() : null;
+    const liveMinuteHtml = liveMinute != null ? `<span class="do-mm-live-minute">${liveMinute}'</span>` : '';
     const momentumHeader = hasNativeStatsTab ? '' : `
       <div class="do-mm-topline">
         <div class="do-mm-topteam home">
@@ -2004,6 +2045,7 @@
         <div class="do-mm-scoreblock">
           <small>${tr('matchMomentum')}</small>
           <strong>${md.homeGoals} : ${md.awayGoals}</strong>
+          ${liveMinuteHtml}
         </div>
         <div class="do-mm-topteam away">
           <span>${esc(md.awayName)}</span>
@@ -2230,6 +2272,7 @@
       .do-mm-badge .do-mv-badge, .do-mm-badge .do-mm-fallback-badge { max-width:52px !important; max-height:52px !important; width:auto !important; height:auto !important; object-fit:contain; }
       .do-mm-badge .do-mv-badge-stack { transform:scale(1.18); transform-origin:center; }
       .do-mm-scoreblock { min-width:150px; text-align:center; line-height:1.05; }
+      .do-mm-live-minute { display:block; margin-top:4px; color:#d33b2f; font-size:12px; font-weight:900; letter-spacing:.2px; }
       .do-mm-lang-switch { display:inline-flex; justify-content:center; gap:4px; }
       .do-mm-chart-tools { display:flex; align-items:center; gap:12px; padding:8px 8px 12px; }
       .do-mm-mode-switch { position:absolute; left:4px; top:1px; display:inline-flex; align-items:center; padding:2px; border:1px solid ${THEME.border}; border-radius:999px; background:rgba(255,255,255,.55); }
