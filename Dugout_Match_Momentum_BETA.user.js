@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dugout Online - Match Momentum BETA
 // @namespace    https://github.com/zamorrr/do-match-momentum-js
-// @version      2.0.11
+// @version      2.0.12
 // @description  BETA 2.0.11 - Match Momentum with switchable OFFENSE/DEFENSE views, compact live statistics, timeline and statistics.
 // @author       zamorrr
 // @match        https://dugout-online.com/game/*
@@ -2173,7 +2173,8 @@
       </div>`;
 
     const isLegacyInterface = detectMatchInterface() === 'legacy';
-    const liveCompactAvailable = !isLegacyInterface && isMatchInProgress() && !hasNativeStatsTab;
+    const isMobileViewport = window.matchMedia('(max-width: 650px)').matches;
+    const liveCompactAvailable = !isLegacyInterface && !isMobileViewport && isMatchInProgress() && !hasNativeStatsTab;
     if (!liveCompactAvailable) liveStatsOpen = false;
 
     const normalHeader = hasNativeStatsTab ? '' : `<div class="do-mm-topline">${momentumHeaderInner}</div>`;
@@ -2505,9 +2506,15 @@
         .do-mm-chart-tools { align-items:flex-start; flex-direction:column; }
         .do-mm-mode-switch { flex-wrap:wrap; }
         .do-mm-legend { justify-content:flex-start; padding:0; }
-        .do-mm-topline { grid-template-columns:1fr; text-align:center; }
+        .do-mm-topline { grid-template-columns:1fr; gap:8px; text-align:center; height:auto; min-height:0; padding:10px 12px; }
+        .do-mm-topteam { width:100%; max-width:100%; min-width:0; justify-content:center; gap:8px; }
         .do-mm-topteam.home, .do-mm-topteam.away { justify-content:center; }
         .do-mm-topteam.away { flex-direction:row-reverse; }
+        .do-mm-topteam > span { max-width:calc(100% - 64px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .do-mm-badge { flex:0 0 44px; width:44px; height:44px; }
+        .do-mm-badge .do-mv-badge-wrap { width:44px !important; height:44px !important; }
+        .do-mm-badge .do-mv-badge, .do-mm-badge .do-mm-fallback-badge { max-width:44px !important; max-height:44px !important; }
+        .do-mm-scoreblock { min-width:0; width:100%; }
         .do-mm-stat-values { grid-template-columns:86px 1fr 86px; }
       }
     `;
@@ -2517,10 +2524,17 @@
   function boot() {
     installUi();
     setupLiveRefresh();
+    let wasMobileViewport = window.matchMedia('(max-width: 650px)').matches;
     window.addEventListener('resize', () => {
       const app = document.getElementById(APP_ID);
+      const isMobileViewport = window.matchMedia('(max-width: 650px)').matches;
       if (app && (app.classList.contains('active') || !app.hidden)) {
-        requestAnimationFrame(() => syncTimelineHeight(app));
+        if (isMobileViewport !== wasMobileViewport) {
+          wasMobileViewport = isMobileViewport;
+          requestAnimationFrame(renderApp);
+        } else {
+          requestAnimationFrame(() => syncTimelineHeight(app));
+        }
       }
     });
   }
